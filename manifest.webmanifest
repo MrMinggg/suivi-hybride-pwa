@@ -1,0 +1,26 @@
+{
+  "name": "Ascension — Suivi personnel",
+  "short_name": "Ascension",
+  "description": "Suivi personnel local, installable et exportable pour analyse avec ChatGPT.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#08111e",
+  "theme_color": "#0e1726",
+  "lang": "fr-BE",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

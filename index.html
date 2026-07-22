@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0e1726">
+  <meta name="description" content="Suivi personnel local, installable et exportable pour analyse avec ChatGPT.">
+  <title>Ascension — Suivi personnel</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Suivi personnel hybride</p>
+        <h1>Ascension</h1>
+      </div>
+      <div class="topbar-actions">
+        <span id="saveStatus" class="save-status" aria-live="polite">Données locales</span>
+        <button id="installButton" class="button secondary hidden" type="button">Installer</button>
+      </div>
+    </header>
+
+    <main id="app" class="content" tabindex="-1">
+      <section id="view-dashboard" class="view active" data-view="dashboard">
+        <div class="hero-card">
+          <div>
+            <p class="eyebrow">Cette semaine</p>
+            <h2 id="weekTitle">Progression en cours</h2>
+            <p id="weekSummary" class="muted">Commence par enregistrer ta journée.</p>
+          </div>
+          <div class="hero-score">
+            <span id="weeklyScore" class="score-number">0%</span>
+            <span class="muted">objectifs réalisés</span>
+          </div>
+        </div>
+
+        <div class="metric-grid" aria-label="Indicateurs de la semaine">
+          <article class="metric-card">
+            <span class="metric-label">Décisions autonomes</span>
+            <strong id="metricDecisions">0</strong>
+            <span class="metric-note">cette semaine</span>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Blocs de concentration</span>
+            <strong id="metricFocus">0</strong>
+            <span class="metric-note">terminés</span>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Actions seul</span>
+            <strong id="metricSolo">0</strong>
+            <span class="metric-note">réalisées</span>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Séances physiques</span>
+            <strong id="metricPhysical">0</strong>
+            <span class="metric-note">réalisées</span>
+          </article>
+        </div>
+
+        <section class="panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Priorités</p>
+              <h2>Aujourd’hui</h2>
+            </div>
+            <button class="text-button" type="button" data-nav-target="today">Modifier</button>
+          </div>
+          <div id="todayPreview" class="task-list empty-state">Aucune journée enregistrée aujourd’hui.</div>
+        </section>
+
+        <section class="panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Engagement actif</p>
+              <h2>Objectif principal</h2>
+            </div>
+            <button class="text-button" type="button" data-nav-target="goals">Voir tout</button>
+          </div>
+          <div id="activeGoalPreview" class="empty-state">Aucun objectif actif.</div>
+        </section>
+
+        <section class="panel accent-panel">
+          <p class="eyebrow">Bilan généré localement</p>
+          <h2 id="insightTitle">Premier constat à venir</h2>
+          <p id="insightText">Après quelques entrées, l’application comparera tes intentions et tes actions réelles.</p>
+        </section>
+      </section>
+
+      <section id="view-today" class="view" data-view="today">
+        <div class="section-heading sticky-heading">
+          <div>
+            <p class="eyebrow">Entrée quotidienne</p>
+            <h2>Aujourd’hui</h2>
+          </div>
+          <span id="todayDateLabel" class="date-chip"></span>
+        </div>
+
+        <form id="dailyForm" class="form-stack">
+          <section class="panel">
+            <h3>Actions observables</h3>
+            <div class="check-grid">
+              <label class="check-card"><input type="checkbox" name="decisionAutonome"><span>Décision prise sans validation préalable</span></label>
+              <label class="check-card"><input type="checkbox" name="blocConcentration"><span>Bloc de concentration terminé</span></label>
+              <label class="check-card"><input type="checkbox" name="actionSeul"><span>Action réalisée seul malgré une gêne</span></label>
+              <label class="check-card"><input type="checkbox" name="activitePhysique"><span>Activité physique réalisée</span></label>
+              <label class="check-card"><input type="checkbox" name="initiativeSociale"><span>Initiative sociale prise</span></label>
+              <label class="check-card"><input type="checkbox" name="tacheTerminee"><span>Tâche ou jalon réellement terminé</span></label>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h3>État du jour</h3>
+            <div class="range-grid">
+              <label>Humeur <output id="moodOutput">5</output>/10<input type="range" name="humeur" min="1" max="10" value="5"></label>
+              <label>Énergie <output id="energyOutput">5</output>/10<input type="range" name="energie" min="1" max="10" value="5"></label>
+              <label>Stress <output id="stressOutput">5</output>/10<input type="range" name="stress" min="1" max="10" value="5"></label>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h3>Difficulté et évitement</h3>
+            <div class="two-column">
+              <label>Difficulté anticipée
+                <input type="number" name="difficulteAnticipee" min="0" max="10" step="1" placeholder="0 à 10">
+              </label>
+              <label>Difficulté réelle
+                <input type="number" name="difficulteReelle" min="0" max="10" step="1" placeholder="0 à 10">
+              </label>
+            </div>
+            <label>Cause principale si quelque chose n’a pas été fait
+              <select name="causeEchec">
+                <option value="">Aucune / non applicable</option>
+                <option>Manque de temps réel</option>
+                <option>Fatigue</option>
+                <option>Oubli</option>
+                <option>Évitement</option>
+                <option>Dépendance à quelqu’un</option>
+                <option>Distraction numérique</option>
+                <option>Objectif mal défini</option>
+                <option>Imprévu externe</option>
+                <option>Résultat partiel jugé suffisant</option>
+                <option>Nouvelle idée plus stimulante</option>
+              </select>
+            </label>
+          </section>
+
+          <section class="panel">
+            <h3>Notes rapides</h3>
+            <label>Réussite du jour<textarea name="reussite" rows="3" placeholder="Ce que tu as réellement réussi"></textarea></label>
+            <label>Chose évitée<textarea name="evitement" rows="3" placeholder="Ce que tu as reporté ou contourné"></textarea></label>
+            <label>Première action de demain<textarea name="demain" rows="2" placeholder="Une action concrète et précise"></textarea></label>
+          </section>
+
+          <div class="action-row">
+            <button class="button primary" type="submit">Enregistrer la journée</button>
+            <button id="clearTodayButton" class="button secondary" type="button">Effacer les champs</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="view-goals" class="view" data-view="goals">
+        <div class="section-heading sticky-heading">
+          <div>
+            <p class="eyebrow">Cycles et engagements</p>
+            <h2>Objectifs</h2>
+          </div>
+          <button id="toggleGoalForm" class="button primary" type="button">Nouvel objectif</button>
+        </div>
+
+        <form id="goalForm" class="panel form-stack hidden">
+          <div class="two-column">
+            <label>Titre<input name="titre" required placeholder="Ex. Deux séances par semaine"></label>
+            <label>Catégorie
+              <select name="categorie">
+                <option>Autonomie</option>
+                <option>Constance</option>
+                <option>Concentration</option>
+                <option>Sport</option>
+                <option>Social</option>
+                <option>Projet</option>
+                <option>Apprentissage</option>
+                <option>Sommeil</option>
+                <option>Autre</option>
+              </select>
+            </label>
+          </div>
+          <label>Définition précise de « terminé »<textarea name="definition" required rows="3" placeholder="Condition observable et non ambiguë"></textarea></label>
+          <div class="three-column">
+            <label>Cible hebdomadaire<input name="cible" type="number" min="1" max="99" value="2" required></label>
+            <label>Date de début<input name="dateDebut" type="date" required></label>
+            <label>Date de révision<input name="dateRevision" type="date" required></label>
+          </div>
+          <label class="check-card compact"><input type="checkbox" name="principal"><span>Définir comme objectif principal</span></label>
+          <div class="action-row">
+            <button class="button primary" type="submit">Créer l’objectif</button>
+            <button id="cancelGoalButton" class="button secondary" type="button">Annuler</button>
+          </div>
+        </form>
+
+        <div id="goalsList" class="list-stack empty-state">Aucun objectif créé.</div>
+      </section>
+
+      <section id="view-journal" class="view" data-view="journal">
+        <div class="section-heading sticky-heading">
+          <div>
+            <p class="eyebrow">Événements et réflexion</p>
+            <h2>Journal</h2>
+          </div>
+        </div>
+
+        <form id="journalForm" class="panel form-stack">
+          <div class="two-column">
+            <label>Date<input name="date" type="date" required></label>
+            <label>Type
+              <select name="type">
+                <option>Événement marquant</option>
+                <option>Décision</option>
+                <option>Réussite</option>
+                <option>Difficulté</option>
+                <option>Projet</option>
+                <option>Travail</option>
+                <option>Autre</option>
+              </select>
+            </label>
+          </div>
+          <label>Titre<input name="titre" required placeholder="Résumé en une phrase"></label>
+          <label>Ce qui s’est passé<textarea name="contenu" required rows="5" placeholder="Écris librement. Le détail sera exporté pour l’analyse."></textarea></label>
+          <label>Ce que tu veux surveiller<textarea name="pointSuivi" rows="2" placeholder="Optionnel"></textarea></label>
+          <button class="button primary" type="submit">Ajouter au journal</button>
+        </form>
+
+        <div id="journalList" class="list-stack empty-state">Aucune entrée de journal.</div>
+      </section>
+
+      <section id="view-analysis" class="view" data-view="analysis">
+        <div class="section-heading sticky-heading">
+          <div>
+            <p class="eyebrow">Tendances locales</p>
+            <h2>Analyse</h2>
+          </div>
+          <label class="compact-select">Période
+            <select id="analysisPeriod">
+              <option value="7">7 jours</option>
+              <option value="30" selected>30 jours</option>
+              <option value="90">90 jours</option>
+              <option value="365">1 an</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="metric-grid">
+          <article class="metric-card"><span class="metric-label">Jours enregistrés</span><strong id="analysisDays">0</strong><span class="metric-note">sur la période</span></article>
+          <article class="metric-card"><span class="metric-label">Taux d’action</span><strong id="analysisActionRate">0%</strong><span class="metric-note">cases réalisées</span></article>
+          <article class="metric-card"><span class="metric-label">Écart difficulté</span><strong id="analysisDifficultyGap">—</strong><span class="metric-note">anticipée − réelle</span></article>
+          <article class="metric-card"><span class="metric-label">Énergie moyenne</span><strong id="analysisEnergy">—</strong><span class="metric-note">sur 10</span></article>
+        </div>
+
+        <section class="panel">
+          <h3>Répartition des actions</h3>
+          <div id="actionBars" class="bar-list"></div>
+        </section>
+
+        <section class="panel">
+          <h3>Cause principale des échecs</h3>
+          <div id="failureInsight" class="empty-state">Pas encore assez de données.</div>
+        </section>
+
+        <section class="panel">
+          <h3>Lecture opérationnelle</h3>
+          <div id="operationalInsights" class="insight-list"></div>
+        </section>
+      </section>
+
+      <section id="view-exchange" class="view" data-view="exchange">
+        <div class="section-heading sticky-heading">
+          <div>
+            <p class="eyebrow">Sauvegarde et partage</p>
+            <h2>Échange avec ChatGPT</h2>
+          </div>
+        </div>
+
+        <section class="panel accent-panel">
+          <h3>Exporter pour analyse</h3>
+          <p>Le rapport Markdown est lisible. Le JSON contient la sauvegarde complète. Le CSV contient les journées sous forme de tableau.</p>
+          <div class="button-grid">
+            <button id="exportMarkdown" class="button primary" type="button">Rapport .md</button>
+            <button id="exportCsv" class="button secondary" type="button">Données .csv</button>
+            <button id="exportJson" class="button secondary" type="button">Sauvegarde .json</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h3>Importer</h3>
+          <p class="muted">Accepte une sauvegarde complète ou une mise à jour structurée générée après analyse.</p>
+          <label class="file-drop">
+            <input id="importFile" type="file" accept="application/json,.json">
+            <span>Choisir un fichier JSON</span>
+          </label>
+          <div id="importPreview" class="import-preview empty-state">Aucun fichier sélectionné.</div>
+          <div class="action-row">
+            <button id="applyImport" class="button primary" type="button" disabled>Appliquer l’import</button>
+            <button id="cancelImport" class="button secondary" type="button" disabled>Annuler</button>
+          </div>
+        </section>
+
+        <section class="panel warning-panel">
+          <h3>Preuve et sécurité</h3>
+          <p>Les données restent sur cet appareil. Une suppression des données du navigateur peut les effacer. Le fichier JSON constitue la sauvegarde transmissible et restaurable.</p>
+          <button id="resetApp" class="button danger" type="button">Réinitialiser toutes les données</button>
+        </section>
+      </section>
+
+      <section id="view-settings" class="view" data-view="settings">
+        <div class="section-heading sticky-heading">
+          <div>
+            <p class="eyebrow">Personnalisation</p>
+            <h2>Réglages</h2>
+          </div>
+        </div>
+        <form id="settingsForm" class="panel form-stack">
+          <label>Nom affiché<input name="displayName" placeholder="Votre nom (facultatif)"></label>
+          <label>Projet actif<input name="activeProject" placeholder="Nom du projet (facultatif)"></label>
+          <label>Phrase directrice<textarea name="guidingSentence" rows="3" placeholder="Une phrase personnelle (facultatif)"></textarea></label>
+          <label>Jour du bilan hebdomadaire
+            <select name="reviewDay">
+              <option value="0">Dimanche</option>
+              <option value="1">Lundi</option>
+              <option value="2">Mardi</option>
+              <option value="3">Mercredi</option>
+              <option value="4">Jeudi</option>
+              <option value="5">Vendredi</option>
+              <option value="6">Samedi</option>
+            </select>
+          </label>
+          <button class="button primary" type="submit">Enregistrer les réglages</button>
+        </form>
+        <section class="panel">
+          <h3>État technique</h3>
+          <dl class="tech-list">
+            <div><dt>Stockage</dt><dd>IndexedDB local</dd></div>
+            <div><dt>Connexion</dt><dd>Fonctionne hors ligne après la première ouverture</dd></div>
+            <div><dt>Compte</dt><dd>Aucun</dd></div>
+            <div><dt>Synchronisation automatique</dt><dd>Non, export/import manuel</dd></div>
+          </dl>
+        </section>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navigation principale">
+      <button class="nav-button active" type="button" data-view-target="dashboard"><span>⌂</span><small>Accueil</small></button>
+      <button class="nav-button" type="button" data-view-target="today"><span>✓</span><small>Aujourd’hui</small></button>
+      <button class="nav-button" type="button" data-view-target="goals"><span>◎</span><small>Objectifs</small></button>
+      <button class="nav-button" type="button" data-view-target="journal"><span>✎</span><small>Journal</small></button>
+      <button class="nav-button" type="button" data-view-target="analysis"><span>▥</span><small>Analyse</small></button>
+      <button class="nav-button" type="button" data-view-target="exchange"><span>⇄</span><small>Échange</small></button>
+      <button class="nav-button" type="button" data-view-target="settings"><span>⚙</span><small>Réglages</small></button>
+    </nav>
+  </div>
+
+  <dialog id="confirmDialog">
+    <div class="dialog-content">
+      <h2 id="confirmTitle">Confirmer</h2>
+      <p id="confirmMessage"></p>
+      <div class="action-row">
+        <button id="confirmCancel" class="button secondary" type="button">Annuler</button>
+        <button id="confirmAccept" class="button danger" type="button">Confirmer</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
