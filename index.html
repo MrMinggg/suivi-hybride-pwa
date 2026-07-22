@@ -10,6 +10,7 @@
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="timeline-v120.css">
 </head>
 <body>
   <div class="app-shell">
@@ -34,30 +35,30 @@
           </div>
           <div class="hero-score">
             <span id="weeklyScore" class="score-number">0%</span>
-            <span class="muted">objectifs réalisés</span>
+            <span class="muted">actions clôturées</span>
           </div>
         </div>
 
         <div class="metric-grid" aria-label="Indicateurs de la semaine">
           <article class="metric-card">
-            <span class="metric-label">Décisions autonomes</span>
-            <strong id="metricDecisions">0</strong>
+            <span class="metric-label">Actions terminées</span>
+            <strong id="metricCompleted">0</strong>
             <span class="metric-note">cette semaine</span>
           </article>
           <article class="metric-card">
-            <span class="metric-label">Blocs de concentration</span>
-            <strong id="metricFocus">0</strong>
-            <span class="metric-note">terminés</span>
+            <span class="metric-label">Temps suivi</span>
+            <strong id="metricTrackedTime">0 min</strong>
+            <span class="metric-note">actions terminées</span>
           </article>
           <article class="metric-card">
-            <span class="metric-label">Actions seul</span>
-            <strong id="metricSolo">0</strong>
-            <span class="metric-note">réalisées</span>
+            <span class="metric-label">Actions en cours</span>
+            <strong id="metricInProgress">0</strong>
+            <span class="metric-note">à clôturer</span>
           </article>
           <article class="metric-card">
-            <span class="metric-label">Séances physiques</span>
-            <strong id="metricPhysical">0</strong>
-            <span class="metric-note">réalisées</span>
+            <span class="metric-label">Jours actifs</span>
+            <strong id="metricActiveDays">0</strong>
+            <span class="metric-note">avec une action</span>
           </article>
         </div>
 
@@ -99,19 +100,47 @@
           <span id="todayDateLabel" class="date-chip"></span>
         </div>
 
-        <form id="dailyForm" class="form-stack">
-          <section class="panel">
-            <h3>Actions observables</h3>
-            <div class="check-grid">
-              <label class="check-card"><input type="checkbox" name="decisionAutonome"><span>Décision prise sans validation préalable</span></label>
-              <label class="check-card"><input type="checkbox" name="blocConcentration"><span>Bloc de concentration terminé</span></label>
-              <label class="check-card"><input type="checkbox" name="actionSeul"><span>Action réalisée seul malgré une gêne</span></label>
-              <label class="check-card"><input type="checkbox" name="activitePhysique"><span>Activité physique réalisée</span></label>
-              <label class="check-card"><input type="checkbox" name="initiativeSociale"><span>Initiative sociale prise</span></label>
-              <label class="check-card"><input type="checkbox" name="tacheTerminee"><span>Tâche ou jalon réellement terminé</span></label>
+        <section class="panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Chronologie libre</p>
+              <h3>Actions du moment</h3>
             </div>
-          </section>
+            <button id="toggleActivityForm" class="button primary" type="button">+ Ajouter</button>
+          </div>
+          <form id="activityForm" class="activity-form form-stack hidden">
+            <label>Action en cours
+              <input name="titre" required maxlength="160" placeholder="Ex. Vérifier un dossier, marcher, appeler quelqu’un…">
+            </label>
+            <div class="two-column">
+              <label>Catégorie facultative
+                <select name="categorie">
+                  <option value="">Sans catégorie</option>
+                  <option>Travail</option>
+                  <option>Autonomie</option>
+                  <option>Concentration</option>
+                  <option>Sport</option>
+                  <option>Social</option>
+                  <option>Projet</option>
+                  <option>Apprentissage</option>
+                  <option>Personnel</option>
+                  <option>Autre</option>
+                </select>
+              </label>
+              <label>Note facultative
+                <input name="note" maxlength="240" placeholder="Contexte utile pour l’analyse">
+              </label>
+            </div>
+            <p class="muted activity-help">L’heure de début sera enregistrée automatiquement lorsque tu appuieras sur « Commencer ».</p>
+            <div class="action-row">
+              <button class="button primary" type="submit">Commencer</button>
+              <button id="cancelActivityButton" class="button secondary" type="button">Annuler</button>
+            </div>
+          </form>
+          <div id="activityList" class="activity-list empty-state">Aucune action ajoutée aujourd’hui.</div>
+        </section>
 
+        <form id="dailyForm" class="form-stack">
           <section class="panel">
             <h3>État du jour</h3>
             <div class="range-grid">
@@ -254,13 +283,13 @@
 
         <div class="metric-grid">
           <article class="metric-card"><span class="metric-label">Jours enregistrés</span><strong id="analysisDays">0</strong><span class="metric-note">sur la période</span></article>
-          <article class="metric-card"><span class="metric-label">Taux d’action</span><strong id="analysisActionRate">0%</strong><span class="metric-note">cases réalisées</span></article>
+          <article class="metric-card"><span class="metric-label">Taux de clôture</span><strong id="analysisActionRate">0%</strong><span class="metric-note">actions terminées</span></article>
           <article class="metric-card"><span class="metric-label">Écart difficulté</span><strong id="analysisDifficultyGap">—</strong><span class="metric-note">anticipée − réelle</span></article>
           <article class="metric-card"><span class="metric-label">Énergie moyenne</span><strong id="analysisEnergy">—</strong><span class="metric-note">sur 10</span></article>
         </div>
 
         <section class="panel">
-          <h3>Répartition des actions</h3>
+          <h3>Répartition par catégorie</h3>
           <div id="actionBars" class="bar-list"></div>
         </section>
 
@@ -374,5 +403,10 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="app.js" defer></script>
+  <script src="timeline-ui.js" defer></script>
+  <script src="timeline-actions.js" defer></script>
+  <script src="timeline-analysis.js" defer></script>
+  <script src="timeline-export.js" defer></script>
+  <script src="timeline-events.js" defer></script>
 </body>
 </html>
